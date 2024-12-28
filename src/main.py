@@ -1,12 +1,37 @@
+from contextlib import asynccontextmanager
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from src.py_libs.data_process.yahoo_fin_loader import YahooDataLoader
+from src.py_libs.utils.fin_utils import fetch_SP500_and_notify
 from src.routers import data_router
 from fastapi.responses import FileResponse
+from apscheduler.schedulers.background import BackgroundScheduler
+from functools import partial
+from datetime import datetime
+
+scheduler = BackgroundScheduler()
 
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    base_price = 5953 #fund cost
+    today_date = datetime.now().date()
+    preinit_yahoo_loader = YahooDataLoader()
+    
+    filled_fetch_SP500_and_notify=partial(fetch_SP500_and_notify, yahoo_loader=preinit_yahoo_loader, base_price=base_price, end_date=today_date)
+    filled_fetch_SP500_and_notify()
+    # Scheduler setup
+    scheduler.add_job(filled_fetch_SP500_and_notify, 'cron', hour=14, minute=56, second=10)  # 9 AM
+    scheduler.add_job(filled_fetch_SP500_and_notify, 'cron', hour=14, minute=56, second=20)  # 9 AM
+    scheduler.start()
+    yield
+    scheduler.shutdown()
+
+app = FastAPI(lifespan=lifespan)
+
+
 
 
 origins = ["*"]
@@ -24,6 +49,10 @@ app.include_router(
     tags=["data"],
     responses={404: {"description": "Not found"}},
 )
+
+
+
+
 
 
 if __name__ == "__main__":

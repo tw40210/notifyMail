@@ -5,6 +5,7 @@ from pathlib import Path
 from fastapi import APIRouter
 from src.py_libs.data_process.yahoo_fin_loader import YahooDataLoader
 from src.py_libs.controllers.data_controller import DataController
+from src.py_libs.utils.fin_utils import get_SP500_shift_from_yf
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -32,11 +33,12 @@ def get_metadata():
 
     return {"MetaDataList": result}
 
-@router.get("/getCurrentPrice")
-def get_current_price():
-    result = yahoo_loader.get_data("AAPL",
-        datetime(2018, 12, 1),
-        datetime(2023, 12, 10))
+@router.get("/getSP500Shift")
+def get_SP500_shift():
+    base_price = 5953 #fund cost
+    today_date = datetime.now().date()
 
-    return {"MetaDataList": result}
+    shift = get_SP500_shift_from_yf(yahoo_loader, base_price, today_date)
+
+    return {"ShiftRatio": shift}
 

@@ -1,12 +1,23 @@
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 import smtplib
+from src.private_env import mail_password, sender_mail_id, receiver_mail_ids
 
 # list of email_id to send the mail
-li = ["tw40210@gmail.com"]
-
-for dest in li:
+for dest in receiver_mail_ids:
     s = smtplib.SMTP('smtp.gmail.com', 587)
     s.starttls()
-    s.login("sender_email_id", "sender_email_id_password")
-    message = "Message_you_need_to_send"
-    s.sendmail("sender_email_id", dest, message)
+    s.login(sender_mail_id, mail_password)
+    message = "Message_you_need_to_sendXDDDD"
+
+
+    msg = MIMEMultipart()  # instance of MIMEMultipart
+    msg['From'] = sender_mail_id
+    msg['To'] = dest
+    msg['Subject'] = "data file"
+    msg.attach(MIMEText(message, 'plain'))
+
+    text = msg.as_string()
+
+    s.sendmail(sender_mail_id, dest, text)
     s.quit()
