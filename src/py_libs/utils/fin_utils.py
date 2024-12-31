@@ -19,7 +19,7 @@ def get_SP500_shift_from_yf(yahoo_loader:YahooDataLoader, base_price, end_date):
 def fetch_SP500_and_notify(yahoo_loader:YahooDataLoader, base_price, end_date):
     base_price, latest_price, shift_ratio = get_SP500_shift_from_yf(yahoo_loader, base_price, end_date)
     print(base_price, latest_price, shift_ratio)
-    if shift_ratio>0.05:
+    if True:
         subject="notifyMail notification of SP500"
         body=f"""
 Notification!!!

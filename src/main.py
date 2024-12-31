@@ -13,16 +13,17 @@ from datetime import datetime
 
 scheduler = BackgroundScheduler()
 
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
+def run_filled_fetch_SP500_and_notify():
     base_price = 5953 #fund cost
     today_date = datetime.now().date()
     preinit_yahoo_loader = YahooDataLoader()
+    fetch_SP500_and_notify(yahoo_loader=preinit_yahoo_loader, base_price=base_price, end_date=today_date)
 
-    filled_fetch_SP500_and_notify=partial(fetch_SP500_and_notify, yahoo_loader=preinit_yahoo_loader, base_price=base_price, end_date=today_date)
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+
     # Scheduler setup
-    scheduler.add_job(filled_fetch_SP500_and_notify, 'cron', hour=9, minute=0)  # 9 AM
+    scheduler.add_job(run_filled_fetch_SP500_and_notify, 'cron', hour=9, minute=0)  # 9 AM
     scheduler.start()
     yield
     scheduler.shutdown()
